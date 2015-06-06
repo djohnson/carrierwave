@@ -233,6 +233,29 @@ module CarrierWave
           directory.files.new(:key => path).destroy
         end
 
+
+        ##
+        # Removes all orphaned files from current instance of the uploader
+        #
+        # === Returns
+        #
+        # [Array] returns an array of the files that were deleted
+        #
+        def destroy_orphaned_files
+          valid_current_keys = @uploader.versions.map { |k, v| v.path }
+          valid_current_keys << @uploader.file.path
+          files_destroyed = []
+          connection.directories.get(
+            @uploader.fog_directory,
+            prefix: @uploader.store_dir).files.each do |file|
+            unless valid_current_keys.include? file.key
+              files_destroyed << file
+              file.destroy
+            end
+          end
+          files_destroyed
+        end
+
         ##
         # Return extension of file
         #

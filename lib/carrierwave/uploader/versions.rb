@@ -224,6 +224,10 @@ module CarrierWave
         end
       end
 
+      def destroy_orphaned_files!
+        file.destroy_orphaned_files
+      end
+
     private
       def assign_parent_cache_id(file)
         active_versions.each do |name, uploader|
