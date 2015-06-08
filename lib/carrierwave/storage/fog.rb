@@ -239,21 +239,17 @@ module CarrierWave
         #
         # === Returns
         #
-        # [Array] returns an array of the files that were deleted
+        # [Array] returns an array of the file keys that were deleted
         #
         def destroy_orphaned_files
           valid_current_keys = @uploader.versions.map { |k, v| v.path }
           valid_current_keys << @uploader.file.path
-          files_destroyed = []
+          prefix_path = @uploader.store_dir + "/"
           connection.directories.get(
             @uploader.fog_directory,
-            prefix: @uploader.store_dir).files.each do |file|
-            unless valid_current_keys.include? file.key
-              files_destroyed << file
-              file.destroy
-            end
-          end
-          files_destroyed
+            prefix: prefix_path).files.map { |file|
+              file.key if valid_current_keys.exclude?(file.key) and file.destroy
+            }.compact
         end
 
         ##
